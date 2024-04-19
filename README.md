@@ -1,2 +1,3 @@
-# brincanagens-com-p5
-fazer gráfico na tela
+# Maze Generator
+
+a maze generator using the p5.js lib
