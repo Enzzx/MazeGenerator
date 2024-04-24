@@ -4,9 +4,12 @@ let iI = 0
 let iJ = 0
 const squareSize = 50
 const matrix = []
-
+const stack = []
+let cache = []
 
 function setup() {
+  frameRate(1)
+  
   createCanvas(450, 450);
   background(0);
   iI = int(random(9))
@@ -40,17 +43,15 @@ function setup() {
 
 
 function draw() {
-  frameRate(40)
-  
+  attCordinates()
+  /*
   if (matrix[iI][iJ].color == "grey") {
     matrix[iI][iJ].color = "white"
   } else {
     matrix[iI][iJ].color = "grey"
-  }
-  //matrix[iI][iJ].color = "grey"
+  }*/
+  matrix[iI][iJ].color = "grey"
   matrix[iI][iJ].iterated = true
-  
-  attCordinates()
   
   matrix.forEach(coluna => {
     coluna.forEach(cell => {
@@ -79,6 +80,7 @@ class cell {
     noStroke()
     fill(this.color)
     rect(this.x, this.y, squareSize, squareSize)
+    text(`${this.i}, ${this.j}`, this.x, this.y)
   }
   
   walls() {
@@ -103,12 +105,63 @@ class cell {
 function attCordinates() {
   const upSideDown = random([0, 1])
   const plusMinus = random([-1, 1])
-  iI += upSideDown == 0 ? plusMinus : 0
-  iJ += upSideDown == 1 ? plusMinus : 0
+  const oldCoords = [iI, iJ]
   
-  if ((iI < 0 || iI > 8) || (iJ < 0 || iJ > 8)) {
-    iI -= upSideDown == 0 ? plusMinus : 0
-    iJ -= upSideDown == 1 ? plusMinus : 0
-    attCordinates()
+  nextCoords = [iI + (upSideDown == 0 ? plusMinus : 0), iJ + (upSideDown == 1 ? plusMinus : 0)]
+  iI = nextCoords[0]
+  iJ = nextCoords[1]
+  if (matchArray(cache, nextCoords)) {
+    //nextCoords = [iI - (upSideDown == 0 ? plusMinus : 0), iJ - (upSideDown == 1 ? plusMinus : 0)]
+    const index = findI(cache, nextCoords)
+    const lixeira = cache.slice(index+1)
+    cache = cache.slice(0, index+1)
+    //console.log(cache, lixeira)
+    lixeira.forEach(lixo => {
+      matrix[lixo[0]][lixo[1]].color = "black"
+      matrix[lixo[0]][lixo[1]].topW = true
+      matrix[lixo[0]][lixo[1]].bottomW = true
+      matrix[lixo[0]][lixo[1]].leftW = true
+      matrix[lixo[0]][lixo[1]].rightW = true
+    })
+    return
   }
+
+  if ((iI < 0 || iI > 8) || (iJ < 0 || iJ > 8)) {
+    iI = oldCoords[0]
+    iJ = oldCoords[1]
+    return attCordinates()
+  } else {
+    if (upSideDown == 0 && plusMinus == -1) {
+      //left
+      matrix[oldCoords[0]][oldCoords[1]].leftW = false
+      matrix[iI][iJ].rightW = false
+    } else if (upSideDown == 0 && plusMinus == 1) {
+      //right
+      matrix[oldCoords[0]][oldCoords[1]].rightW = false
+      matrix[iI][iJ].leftW = false
+    } else if (upSideDown == 1 && plusMinus == -1) {
+      //top
+      matrix[oldCoords[0]][oldCoords[1]].topW = false
+      matrix[iI][iJ].bottomW = false
+    } else {
+      //bottom
+      matrix[oldCoords[0]][oldCoords[1]].bottomW = false
+      matrix[iI][iJ].topW = false
+    }
+    cache.push(Array.of(iI, iJ))
+  }
+}
+  
+function findI(matrix, uni) {
+  for (let i = 0; i < matrix.length; i++) {
+    if (matchArray(Array.of(matrix[i]), uni)) {
+      return i
+    }
+  }
+}
+
+function matchArray(bid, uni) {
+  return bid.some(subarray => {
+    return subarray.every((valor, index) => valor === uni[index])
+  })
 }
