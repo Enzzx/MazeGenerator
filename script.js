@@ -11,7 +11,7 @@ let cache = []
 let direction = []
 
 function setup() {
-  //frameRate(1)
+  frameRate(2)
   
   createCanvas(450, 450);
   background(0);
@@ -31,7 +31,7 @@ function setup() {
   
   [iI, iJ] = randomize();
   matrix[iI][iJ].color = "white"
-  matrix[iI][iJ].iterated = true;
+  matrix[iI][iJ].visited = true;
 
   [iI, iJ] = randomize();
   matrix[iI][iJ].color = "grey"
@@ -56,9 +56,9 @@ function draw() {
     
     matrix[iI][iJ].color = "grey"
     
-    if (matrix[iI][iJ].iterated == true) {
+    if (matrix[iI][iJ].visited == true) {
       cache.forEach(subarray => {
-        matrix[subarray[0]][subarray[1]].iterated = true
+        matrix[subarray[0]][subarray[1]].visited = true
         matrix[subarray[0]][subarray[1]].color = "white"
       })
       cache.length = 0
@@ -84,7 +84,7 @@ class cell {
     this.i = i
     this.j = j
     this.color = "black"
-    this.iterated = false
+    this.visited = false
     this.topW = true
     this.bottomW = true
     this.rightW = true
@@ -100,7 +100,7 @@ class cell {
   
   walls() {
     stroke(0)
-    
+    strokeWeight(5)
     if (this.topW) {
       line(this.x, this.y, this.x+squareSize, this.y)
     }
@@ -130,7 +130,7 @@ function attCordinates() {
   if (matchArray(cache, nextCoords)) {
     //nextCoords = [iI - (upSideDown == 0 ? plusMinus : 0), iJ - (upSideDown == 1 ? plusMinus : 0)]
     const index = findI(cache, nextCoords)
-    const lixeira = cache.slice(index+1)
+    const lixeira = cache.slice(index)
     cache = cache.slice(0, index+1)
     //console.log(cache, lixeira)
     lixeira.forEach(lixo => {
@@ -140,6 +140,21 @@ function attCordinates() {
       matrix[lixo[0]][lixo[1]].leftW = true
       matrix[lixo[0]][lixo[1]].rightW = true
     })
+
+    //ver se a célula vizinha além de ser visitada, não tem muro com a atual
+    const [lastI, lastJ] = cache[cache.length-1]
+    if (matchArray(cache, [lastI, lastJ+1])) {
+        matrix[lastI][lastJ].rightW = false
+    }
+    if (matchArray(cache, [lastI, lastJ-1])) {
+        matrix[lastI][lastJ].leftW = false
+    }
+    if (matchArray(cache, [lastI-1, lastJ])) {
+        matrix[lastI][lastJ].topW = false
+    }
+    if (matchArray(cache, [lastI+1, lastJ])) {
+        matrix[lastI][lastJ].bottomW = false
+    }
     return
   }
     
@@ -153,7 +168,8 @@ function attCordinates() {
     //   console.log("voltou pra esquerda")
     // }
 
-  if ((iI < 0 || iI > perimeter-1) || (iJ < 0 || iJ > perimeter-1)) {
+    console.log(cache[cache.length-2], iI, iJ)
+  if ((iI < 0 || iI > perimeter-1) || (iJ < 0 || iJ > perimeter-1) || matchArray([cache[cache.length-1]], [iI, iJ])) {
     console.log("entrou")
     iI = oldCoords[0]
     iJ = oldCoords[1]
@@ -203,8 +219,8 @@ function matchArray(bid, uni) {
 }
   
 function randomize() {
-  let [a, b] = [int(random(perimeter)), int(random(perimeter))]
-  if (matrix[a][b].iterated) {
+    let [a, b] = [int(random(perimeter)), int(random(perimeter))]
+    if (matrix[a][b].visited) {
     return randomize()
   } else {
     return [a, b];
