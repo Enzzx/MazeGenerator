@@ -3,8 +3,8 @@ let xDrop = 0
 let yDrop = 0
 let iI = 0
 let iJ = 0
-const perimeter = 15
-const squareSize = 450 / perimeter
+let perimeter = 10
+let squareSize = 400 / perimeter
 const matrix = []
 let stack = []
 let cache = [[-1, -1]]
@@ -13,7 +13,7 @@ let cache = [[-1, -1]]
 function setup() {
   //frameRate(1)
 
-  createCanvas(450, 450);
+  createCanvas(400, 400);
   background(0);
 
   for (let i = 0; i < perimeter; i++) {
@@ -89,15 +89,13 @@ function draw() {
     }
 
   } else {
-    iI += yDrop
-    iJ += xDrop
     
-    if ((iI < 0 || iI > perimeter - 1) || (iJ < 0 || iJ > perimeter - 1)) {
-      iI -= yDrop
-      iJ -= xDrop
+    if ((iI + yDrop < 0 || iI + yDrop > perimeter - 1) || (iJ + xDrop < 0 || iJ + xDrop > perimeter - 1) || brakeOnWall()) {
       [xDrop, yDrop] = [0, 0]
       console.log("deu não mané");
     } else {
+      iI += yDrop
+      iJ += xDrop
       matrix[iI-yDrop][iJ-xDrop].color = "white";
       matrix[iI][iJ].color = "#ff4040";
       [xDrop, yDrop] = [0, 0]
@@ -109,25 +107,50 @@ function draw() {
         cell.walls()
       })
     })
+    
+    
+    if (iI == perimeter - 1 && iJ == perimeter - 1) {
+      perimeter += 3
+      squareSize = 400 / perimeter
+      matrix.length = 0
+      for (let i = 0; i < perimeter; i++) {
+        const coluna = []
+        matrix.push(coluna)
+        for (let j = 0; j < perimeter; j++) {
+          const celula = new cell(xDrop, yDrop, i, j)
+          coluna.push(celula)
+          xDrop += squareSize
+        }
+        xDrop = 0
+        yDrop += squareSize;
+      }
+      for (let i = 0; i < perimeter; i++) {
+        for (let j = 0; j < perimeter; j++) {
+          stack.push([i, j])
+        }
+      }
+      cache.length = 0;
+      [iI, iJ] = randomize()
+      matrix[iI][iJ].color = "white"
+      matrix[iI][iJ].visited = true
+      finished = false
+    }
+    
   }
 }
 
 function keyPressed() {
   if (keyCode == UP_ARROW) {
     yDrop = -1
-    console.log("cima", [iI, iJ])
   }
   if (keyCode == DOWN_ARROW) {
     yDrop = 1
-    console.log("baixo", [iI, iJ])
   }
   if (keyCode == RIGHT_ARROW) {
     xDrop = 1
-    console.log("direita", [iI, iJ])
   }
   if (keyCode == LEFT_ARROW) {
     xDrop = -1
-    console.log("esquerda", [iI, iJ])
   }
 }
 
@@ -193,7 +216,6 @@ function attCordinates() {
       matrix[lixo[0]][lixo[1]].rightW = true
     })
 
-    //ver se a célula vizinha além de ser visitada, não tem muro com a atual
     const [lastI, lastJ] = cache[cache.length-1]
     if (matchArray(cache, [lastI, lastJ+1]) && matrix[lastI][lastJ+1].leftW == false) {
       matrix[lastI][lastJ].rightW = false
@@ -261,4 +283,11 @@ function randomize() {
   } else {
     return [a, b];
   }
+}
+  
+function brakeOnWall() {
+  if ((yDrop === -1 && matrix[iI][iJ].topW == true) || (yDrop === 1 && matrix[iI][iJ].bottomW == true) || (xDrop === -1 && matrix[iI][iJ].leftW == true) || (xDrop === 1 && matrix[iI][iJ].rightW == true)) {
+    return true
+  }
+  return false
 }
