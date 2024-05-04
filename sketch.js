@@ -9,10 +9,8 @@ const matrix = []
 let stack = []
 let cache = [[-1, -1]]
 
-
 function setup() {
   //frameRate(1)
-
   createCanvas(400, 400);
   background(0);
 
@@ -79,36 +77,36 @@ function draw() {
         cell.walls()
       })
     })
-    
+
     if (stack.length == 0) {
       finished = true
       console.log("cabô");
       [iI, iJ, xDrop, yDrop] = [0, 0, 0, 0]
       matrix[iI][iJ].color = "#ff4040"
-      matrix[perimeter-1][perimeter-1].color = "red"
+      matrix[perimeter - 1][perimeter - 1].color = "red"
     }
 
   } else {
-    
+
     if ((iI + yDrop < 0 || iI + yDrop > perimeter - 1) || (iJ + xDrop < 0 || iJ + xDrop > perimeter - 1) || brakeOnWall()) {
       [xDrop, yDrop] = [0, 0]
       console.log("deu não mané");
     } else {
       iI += yDrop
       iJ += xDrop
-      matrix[iI-yDrop][iJ-xDrop].color = "white";
+      matrix[iI - yDrop][iJ - xDrop].color = "white";
       matrix[iI][iJ].color = "#ff4040";
       [xDrop, yDrop] = [0, 0]
     }
-    
+
     matrix.forEach(coluna => {
       coluna.forEach(cell => {
         cell.paint()
         cell.walls()
       })
     })
-    
-    
+
+
     if (iI == perimeter - 1 && iJ == perimeter - 1) {
       perimeter += 3
       squareSize = 400 / perimeter
@@ -135,7 +133,6 @@ function draw() {
       matrix[iI][iJ].visited = true
       finished = false
     }
-    
   }
 }
 
@@ -193,7 +190,6 @@ class cell {
   }
 }
 
-
 function attCordinates() {
   const upSideDown = random([0, 1])
   const plusMinus = random([-1, 1])
@@ -202,44 +198,45 @@ function attCordinates() {
   nextCoords = [iI + (upSideDown == 0 ? plusMinus : 0), iJ + (upSideDown == 1 ? plusMinus : 0)]
   iI = nextCoords[0]
   iJ = nextCoords[1]
-  if (matchArray(cache, nextCoords)) {
 
-    const index = findI(cache, nextCoords)
-    const lixeira = cache.slice(index)
-    cache = cache.slice(0, index + 1)
-    //console.log(cache, lixeira)
-    lixeira.forEach(lixo => {
-      matrix[lixo[0]][lixo[1]].color = "black"
-      matrix[lixo[0]][lixo[1]].topW = true
-      matrix[lixo[0]][lixo[1]].bottomW = true
-      matrix[lixo[0]][lixo[1]].leftW = true
-      matrix[lixo[0]][lixo[1]].rightW = true
-    })
-
-    const [lastI, lastJ] = cache[cache.length-1]
-    if (matchArray(cache, [lastI, lastJ+1]) && matrix[lastI][lastJ+1].leftW == false) {
-      matrix[lastI][lastJ].rightW = false
-    }
-    if (matchArray(cache, [lastI, lastJ-1]) && matrix[lastI][lastJ-1].rightW == false) {
-      matrix[lastI][lastJ].leftW = false
-    }
-    if (matchArray(cache, [lastI-1, lastJ]) && matrix[lastI-1][lastJ].bottomW == false) {
-      matrix[lastI][lastJ].topW = false
-    }
-    if (matchArray(cache, [lastI+1, lastJ]) && matrix[lastI+1][lastJ].topW == false) {
-      matrix[lastI][lastJ].bottomW = false
-    }
-    return
-  }
-
-  //console.log(cache[cache.length - 2], iI, iJ)
+  //console.log(cache[cache.length - 2], nextCoords)
   // || matchArray([cache[cache.length - 2]], nextCoords) ainda n funciona
-  if ((iI < 0 || iI > perimeter - 1) || (iJ < 0 || iJ > perimeter - 1)) {
+  if ((iI < 0 || iI > perimeter - 1) || (iJ < 0 || iJ > perimeter - 1) || matchArray([cache[cache.length - 2]], nextCoords)) {
     //console.log("entrou")
     iI = oldCoords[0]
     iJ = oldCoords[1]
     return attCordinates()
   } else {
+
+    if (matchArray(cache, nextCoords)) {
+
+      const index = findI(cache, nextCoords)
+      const lixeira = cache.slice(index)
+      cache = cache.slice(0, index + 1)
+      //console.log(cache, lixeira)
+      lixeira.forEach(lixo => {
+        matrix[lixo[0]][lixo[1]].color = "black"
+        matrix[lixo[0]][lixo[1]].topW = true
+        matrix[lixo[0]][lixo[1]].bottomW = true
+        matrix[lixo[0]][lixo[1]].leftW = true
+        matrix[lixo[0]][lixo[1]].rightW = true
+      })
+
+      const [lastI, lastJ] = cache[cache.length - 1]
+      if (matchArray(cache, [lastI, lastJ + 1]) && matrix[lastI][lastJ + 1].leftW == false) {
+        matrix[lastI][lastJ].rightW = false
+      }
+      if (matchArray(cache, [lastI, lastJ - 1]) && matrix[lastI][lastJ - 1].rightW == false) {
+        matrix[lastI][lastJ].leftW = false
+      }
+      if (matchArray(cache, [lastI - 1, lastJ]) && matrix[lastI - 1][lastJ].bottomW == false) {
+        matrix[lastI][lastJ].topW = false
+      }
+      if (matchArray(cache, [lastI + 1, lastJ]) && matrix[lastI + 1][lastJ].topW == false) {
+        matrix[lastI][lastJ].bottomW = false
+      }
+      return
+    }
 
     if (upSideDown == 0 && plusMinus == -1) {
       //top
@@ -277,14 +274,14 @@ function matchArray(bid, uni) {
 }
 
 function randomize() {
-  let [a, b] =  [int(random(perimeter)), int(random(perimeter))]
+  let [a, b] = [int(random(perimeter)), int(random(perimeter))]
   if (matrix[a][b].visited) {
-    return randomize() 
+    return randomize()
   } else {
     return [a, b];
   }
 }
-  
+
 function brakeOnWall() {
   if ((yDrop === -1 && matrix[iI][iJ].topW == true) || (yDrop === 1 && matrix[iI][iJ].bottomW == true) || (xDrop === -1 && matrix[iI][iJ].leftW == true) || (xDrop === 1 && matrix[iI][iJ].rightW == true)) {
     return true
