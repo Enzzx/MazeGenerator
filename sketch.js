@@ -3,15 +3,18 @@ let xDrop = 0
 let yDrop = 0
 let iI = 0
 let iJ = 0
-let perimeter = 10
-let squareSize = 400 / perimeter
 const matrix = []
 let stack = []
 let cache = [[-1, -1]]
 
+const canvas = 500
+let perimeter = 7
+let squareSize = canvas/perimeter
+
+
 function setup() {
   //frameRate(1)
-  createCanvas(400, 400);
+  createCanvas(canvas, canvas);
   background(0);
 
   for (let i = 0; i < perimeter; i++) {
@@ -38,7 +41,13 @@ function setup() {
   [iI, iJ] = randomize();
   matrix[iI][iJ].color = "grey"
   cache.push([iI, iJ])
-
+  
+  /*
+  while(!finished) {
+    
+  }
+  */
+  
   matrix.forEach(coluna => {
     coluna.forEach(cell => {
       cell.paint()
@@ -71,12 +80,14 @@ function draw() {
       cache.length = 0
     }
 
+    
     matrix.forEach(coluna => {
       coluna.forEach(cell => {
         cell.paint()
         cell.walls()
       })
     })
+    
 
     if (stack.length == 0) {
       finished = true
@@ -109,7 +120,7 @@ function draw() {
 
     if (iI == perimeter - 1 && iJ == perimeter - 1) {
       perimeter += 3
-      squareSize = 400 / perimeter
+      squareSize = canvas / perimeter
       matrix.length = 0
       for (let i = 0; i < perimeter; i++) {
         const coluna = []
